@@ -2,15 +2,16 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 import os
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 # Load environment variables from a .env file (for local development)
 load_dotenv()
 
 # Set OpenAI API key securely from an environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
-if openai.api_key is None:
+OpenAI.api_key = os.getenv("OPENAI_API_KEY")  # Load the API key from the environment
+#openai.api_key = os.getenv("OPENAI_API_KEY")
+if OpenAI.api_key is None:
     raise ValueError("OPENAI_API_KEY not set in environment variables.")
 
 # Define your own API token for securing your endpoints
@@ -50,8 +51,11 @@ def health_summary(request: SummaryRequest, api_key: str = Depends(get_api_key))
         system_message = "You are a life advisor who recommends actions to enhance quality of life based on best practices. Each recommendation should consider a person’s satisfaction and importance ratings (scale 1–10) for the following dimensions: Job & Career: Fulfillment, growth, work-life balance; Physical Health: Fitness, nutrition, sleep; Mental Health: Stress management, mindfulness; Significant Other: Communication, intimacy, support; Family: Closeness, support, conflict resolution; Friendship: Trust, shared experiences; Community: Engagement, volunteerism; Spirituality & Faith: Beliefs, purpose; Physiological Needs: Basic needs (food, shelter, sleep); Finances: Budgeting, saving, debt management; Education & Learning: Personal growth, skill development; Hobbies & Entertainment: Joyful activities outside work."
         user_message = f"I'm looking for advice on improving my quality of life. Here are my current ratings for each dimension (satisfaction and importance on a scale from 1 to 10):\n{request.data}"
 
+        # Create a client instance
+        client = OpenAI()
+
         # Make the API call to OpenAI
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
@@ -63,7 +67,7 @@ def health_summary(request: SummaryRequest, api_key: str = Depends(get_api_key))
         summary = response.choices[0].message.content.strip()
         return SummaryResponse(summary=summary)
     
-    except openai.error.OpenAIError as e:
+    except client.error.OpenAIError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
@@ -75,8 +79,11 @@ def data_summary(request: SummaryRequest, api_key: str = Depends(get_api_key)):
         system_message = "You are an expert in data analysis..."
         user_message = f"Data:\n{request.data}"
 
+        # Create a client instance
+        client = OpenAI()
+
         # Make the API call to OpenAI
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
@@ -88,7 +95,7 @@ def data_summary(request: SummaryRequest, api_key: str = Depends(get_api_key)):
         summary = response.choices[0].message.content.strip()
         return SummaryResponse(summary=summary)
     
-    except openai.error.OpenAIError as e:
+    except client.error.OpenAIError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
