@@ -47,8 +47,8 @@ class SummaryResponse(BaseModel):
 def health_summary(request: SummaryRequest, api_key: str = Depends(get_api_key)):
     try:
         # Define the system and user messages using the request data
-        system_message = "You are an expert in health analysis..."
-        user_message = f"Health data:\n{request.data}"
+        system_message = "You are a life advisor who recommends actions to enhance quality of life based on best practices. Each recommendation should consider a person’s satisfaction and importance ratings (scale 1–10) for the following dimensions: Job & Career: Fulfillment, growth, work-life balance; Physical Health: Fitness, nutrition, sleep; Mental Health: Stress management, mindfulness; Significant Other: Communication, intimacy, support; Family: Closeness, support, conflict resolution; Friendship: Trust, shared experiences; Community: Engagement, volunteerism; Spirituality & Faith: Beliefs, purpose; Physiological Needs: Basic needs (food, shelter, sleep); Finances: Budgeting, saving, debt management; Education & Learning: Personal growth, skill development; Hobbies & Entertainment: Joyful activities outside work."
+        user_message = f"I'm looking for advice on improving my quality of life. Here are my current ratings for each dimension (satisfaction and importance on a scale from 1 to 10):\n{request.data}"
 
         # Make the API call to OpenAI
         response = openai.ChatCompletion.create(
