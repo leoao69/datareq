@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 # Load environment variables from a .env file (for local development)
 load_dotenv()
@@ -36,6 +37,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Configure CORS settings to allow all origins, methods, and headers (or specify your own)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace "*" with your allowed origins if needed
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Define the request model
 class SummaryRequest(BaseModel):
     data: str  # The financial data (or other type of data) to summarize
@@ -45,7 +55,7 @@ class SummaryResponse(BaseModel):
     summary: str
 
 @app.post("/health-summary", response_model=SummaryResponse)
-def health_summary(request: SummaryRequest, api_key: str = Depends(get_api_key)):
+async def health_summary(request: SummaryRequest, api_key: str = Depends(get_api_key)):
     try:
         # Define the system and user messages using the request data
         system_message = "You are a life advisor who recommends actions to enhance quality of life based on best practices. Each recommendation should consider a person’s satisfaction and importance ratings (scale 1–10) for the following dimensions: Job & Career: Fulfillment, growth, work-life balance; Physical Health: Fitness, nutrition, sleep; Mental Health: Stress management, mindfulness; Significant Other: Communication, intimacy, support; Family: Closeness, support, conflict resolution; Friendship: Trust, shared experiences; Community: Engagement, volunteerism; Spirituality & Faith: Beliefs, purpose; Physiological Needs: Basic needs (food, shelter, sleep); Finances: Budgeting, saving, debt management; Education & Learning: Personal growth, skill development; Hobbies & Entertainment: Joyful activities outside work."
